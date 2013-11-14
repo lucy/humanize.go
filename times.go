@@ -5,14 +5,12 @@ import (
 	"time"
 )
 
-// Seconds-based time units
+// Time units
 const (
-	Minute = 60
-	Hour   = 60 * Minute
-	Day    = 24 * Hour
-	Week   = 7 * Day
-	Month  = 30 * Day
-	Year   = 12 * Month
+	Day   = 24 * time.Hour
+	Week  = 7 * Day
+	Month = 30 * Day
+	Year  = 12 * Month
 )
 
 // Time formats a time into a relative string.
@@ -21,30 +19,30 @@ func Time(then time.Time) string {
 	now := time.Now()
 
 	lbl := "ago"
-	diff := now.Unix() - then.Unix()
+	diff := now.Sub(then)
 	if then.After(now) {
 		lbl = "from now"
-		diff = then.Unix() - now.Unix()
+		diff = then.Sub(now)
 	}
 
 	switch {
 
 	case diff <= 0:
 		return "now"
-	case diff <= 2:
+	case diff <= 2*time.Second:
 		return fmt.Sprintf("1 second %s", lbl)
-	case diff < 1*Minute:
+	case diff < 1*time.Minute:
 		return fmt.Sprintf("%d seconds %s", diff, lbl)
 
-	case diff < 2*Minute:
+	case diff < 2*time.Minute:
 		return fmt.Sprintf("1 minute %s", lbl)
-	case diff < 1*Hour:
-		return fmt.Sprintf("%d minutes %s", diff/Minute, lbl)
+	case diff < 1*time.Hour:
+		return fmt.Sprintf("%d minutes %s", diff/time.Minute, lbl)
 
-	case diff < 2*Hour:
+	case diff < 2*time.Hour:
 		return fmt.Sprintf("1 hour %s", lbl)
 	case diff < 1*Day:
-		return fmt.Sprintf("%d hours %s", diff/Hour, lbl)
+		return fmt.Sprintf("%d hours %s", diff/time.Hour, lbl)
 
 	case diff < 2*Day:
 		return fmt.Sprintf("1 day %s", lbl)
@@ -64,5 +62,6 @@ func Time(then time.Time) string {
 	case diff < 18*Month:
 		return fmt.Sprintf("1 year %s", lbl)
 	}
-	return then.String()
+
+	return then.Format("2006-01-02")
 }
