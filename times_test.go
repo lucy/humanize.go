@@ -5,57 +5,75 @@ import (
 	"time"
 )
 
-func TestPast(t *testing.T) {
-	now := time.Now().Unix()
-	testList{
-		{"now", Time(time.Unix(now, 0)), "now"},
-		{"1 second ago", Time(time.Unix(now-1, 0)), "1 second ago"},
-		{"12 seconds ago", Time(time.Unix(now-12, 0)), "12 seconds ago"},
-		{"30 seconds ago", Time(time.Unix(now-30, 0)), "30 seconds ago"},
-		{"45 seconds ago", Time(time.Unix(now-45, 0)), "45 seconds ago"},
-		{"1 minute ago", Time(time.Unix(now-63, 0)), "1 minute ago"},
-		{"15 minutes ago", Time(time.Unix(now-15*Minute, 0)), "15 minutes ago"},
-		{"1 hour ago", Time(time.Unix(now-63*Minute, 0)), "1 hour ago"},
-		{"2 hours ago", Time(time.Unix(now-2*Hour, 0)), "2 hours ago"},
-		{"21 hours ago", Time(time.Unix(now-21*Hour, 0)), "21 hours ago"},
-		{"1 day ago", Time(time.Unix(now-26*Hour, 0)), "1 day ago"},
-		{"2 days ago", Time(time.Unix(now-49*Hour, 0)), "2 days ago"},
-		{"3 days ago", Time(time.Unix(now-3*Day, 0)), "3 days ago"},
-		{"1 week ago (1)", Time(time.Unix(now-7*Day, 0)), "1 week ago"},
-		{"1 week ago (2)", Time(time.Unix(now-12*Day, 0)), "1 week ago"},
-		{"2 weeks ago", Time(time.Unix(now-15*Day, 0)), "2 weeks ago"},
-		{"1 month ago", Time(time.Unix(now-39*Day, 0)), "1 month ago"},
-		{"3 months ago", Time(time.Unix(now-99*Day, 0)), "3 months ago"},
-		{"1 year ago (1)", Time(time.Unix(now-365*Day, 0)), "1 year ago"},
-		{"1 year ago (1)", Time(time.Unix(now-400*Day, 0)), "1 year ago"},
-		{"2 years ago (1)", Time(time.Unix(now-548*Day, 0)), "2 years ago"},
-		{"2 years ago (2)", Time(time.Unix(now-725*Day, 0)), "2 years ago"},
-		{"2 years ago (3)", Time(time.Unix(now-800*Day, 0)), "2 years ago"},
-		{"3 years ago", Time(time.Unix(now-3*Year, 0)), "3 years ago"},
-		{"long ago", Time(time.Unix(now-LongTime, 0)), "long ago"},
-	}.validate(t)
+type timeTest struct {
+	now time.Time
+	t   time.Time
+	s   string
 }
 
-func TestFuture(t *testing.T) {
-	now := time.Now().Unix()
-	testList{
-		{"now", Time(time.Unix(now, 0)), "now"},
-		{"1 second from now", Time(time.Unix(now+1, 0)), "1 second from now"},
-		{"12 seconds from now", Time(time.Unix(now+12, 0)), "12 seconds from now"},
-		{"30 seconds from now", Time(time.Unix(now+30, 0)), "30 seconds from now"},
-		{"45 seconds from now", Time(time.Unix(now+45, 0)), "45 seconds from now"},
-		{"15 minutes from now", Time(time.Unix(now+15*Minute, 0)), "15 minutes from now"},
-		{"2 hours from now", Time(time.Unix(now+2*Hour, 0)), "2 hours from now"},
-		{"21 hours from now", Time(time.Unix(now+21*Hour, 0)), "21 hours from now"},
-		{"1 day from now", Time(time.Unix(now+26*Hour, 0)), "1 day from now"},
-		{"2 days from now", Time(time.Unix(now+49*Hour, 0)), "2 days from now"},
-		{"3 days from now", Time(time.Unix(now+3*Day, 0)), "3 days from now"},
-		{"1 week from now (1)", Time(time.Unix(now+7*Day, 0)), "1 week from now"},
-		{"1 week from now (2)", Time(time.Unix(now+12*Day, 0)), "1 week from now"},
-		{"2 weeks from now", Time(time.Unix(now+15*Day, 0)), "2 weeks from now"},
-		{"1 month from now", Time(time.Unix(now+30*Day, 0)), "1 month from now"},
-		{"1 year from now", Time(time.Unix(now+365*Day, 0)), "1 year from now"},
-		{"2 years from now", Time(time.Unix(now+2*Year, 0)), "2 years from now"},
-		{"a while from now", Time(time.Unix(now+LongTime, 0)), "a while from now"},
-	}.validate(t)
+var now = time.Now()
+
+var timeTests = []timeTest{
+	{now, now, "now"},
+	{now, now.Add(-1 * time.Second), "1 second ago"},
+	{now, now.Add(-12 * time.Second), "12 seconds ago"},
+	{now, now.Add(-30 * time.Second), "30 seconds ago"},
+	{now, now.Add(-45 * time.Second), "45 seconds ago"},
+	{now, now.Add(-63 * time.Second), "1 minute ago"},
+	{now, now.Add(-15 * time.Minute), "15 minutes ago"},
+	{now, now.Add(-63 * time.Minute), "1 hour ago"},
+	{now, now.Add(-2 * time.Hour), "2 hours ago"},
+	{now, now.Add(-21 * time.Hour), "21 hours ago"},
+	{now, now.Add(-26 * time.Hour), "1 day ago"},
+	{now, now.Add(-49 * time.Hour), "2 days ago"},
+	{now, now.Add(-3 * Day), "3 days ago"},
+	{now, now.Add(-7 * Day), "1 week ago"},
+	{now, now.Add(-12 * Day), "1 week ago"},
+	{now, now.Add(-15 * Day), "2 weeks ago"},
+	{now, now.Add(-39 * Day), "1 month ago"},
+	{now, now.Add(-99 * Day), "3 months ago"},
+	{now, now.Add(-365 * Day), "1 year ago"},
+	{now, now.Add(-400 * Day), "1 year ago"},
+	{now, now.Add(-548 * Day), "2014-06-12"},
+	{now, now.Add(-725 * Day), "2013-12-17"},
+	{now, now.Add(-800 * Day), "2013-10-03"},
+	{now, now.Add(-3 * Year), "2012-12-27"},
+	{now, now.Add(1 * time.Second), "1 second from now"},
+	{now, now.Add(12 * time.Second), "12 seconds from now"},
+	{now, now.Add(30 * time.Second), "30 seconds from now"},
+	{now, now.Add(45 * time.Second), "45 seconds from now"},
+	{now, now.Add(63 * time.Second), "1 minute from now"},
+	{now, now.Add(15 * time.Minute), "15 minutes from now"},
+	{now, now.Add(63 * time.Minute), "1 hour from now"},
+	{now, now.Add(2 * time.Hour), "2 hours from now"},
+	{now, now.Add(21 * time.Hour), "21 hours from now"},
+	{now, now.Add(26 * time.Hour), "1 day from now"},
+	{now, now.Add(49 * time.Hour), "2 days from now"},
+	{now, now.Add(3 * Day), "3 days from now"},
+	{now, now.Add(7 * Day), "1 week from now"},
+	{now, now.Add(12 * Day), "1 week from now"},
+	{now, now.Add(15 * Day), "2 weeks from now"},
+	{now, now.Add(39 * Day), "1 month from now"},
+	{now, now.Add(99 * Day), "3 months from now"},
+	{now, now.Add(365 * Day), "1 year from now"},
+	{now, now.Add(400 * Day), "1 year from now"},
+	{now, now.Add(548 * Day), "2017-06-12"},
+	{now, now.Add(725 * Day), "2017-12-06"},
+	{now, now.Add(800 * Day), "2018-02-19"},
+	{now, now.Add(3 * Year), "2018-11-26"},
+}
+
+func testTime(t *testing.T, te *timeTest) {
+	s := TimeRelativeTo(te.now, te.t)
+	if s != te.s {
+		t.Errorf("on %s to %s: expected %q but got %q\n",
+			te.now.Format(time.RFC3339), te.t.Format(time.RFC3339),
+			te.s, s)
+	}
+}
+
+func TestTime(t *testing.T) {
+	for _, te := range timeTests {
+		testTime(t, &te)
+	}
 }

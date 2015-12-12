@@ -1,67 +1,38 @@
 package humanize
 
-import (
-	"math/big"
-	"strconv"
-	"strings"
-)
-
 // Comma produces a string form of the given number in base 10 with
 // commas after every three orders of magnitude.
 //
 // e.g. Comma(834142) -> 834,142
-func Comma(v int64) string {
-	sign := ""
-	if v < 0 {
-		sign = "-"
-		v = 0 - v
+func Comma(x int64) string {
+	const len = 26 // sign + 6 commas + 19 numbers
+	var b [len]byte
+	i := len
+	n := x < 0
+	if n {
+		x = -x
 	}
-
-	parts := []string{"", "", "", "", "", "", "", ""}
-	j := len(parts) - 1
-
-	for v > 999 {
-		parts[j] = strconv.FormatInt(v%1000, 10)
-		switch len(parts[j]) {
-		case 2:
-			parts[j] = "0" + parts[j]
-		case 1:
-			parts[j] = "00" + parts[j]
+	j := 0
+	for ; x != 0; x /= 10 {
+		if j == 3 {
+			i--
+			j = 0
+			b[i] = ','
 		}
-		v = v / 1000
-		j--
-	}
-	parts[j] = strconv.Itoa(int(v))
-	return sign + strings.Join(parts[j:], ",")
-}
-
-// BigComma produces a string form of the given big.Int in base 10
-// with commas after every three orders of magnitude.
-func BigComma(b *big.Int) string {
-	sign := ""
-	if b.Sign() < 0 {
-		sign = "-"
-		b.Abs(b)
+		i--
+		j++
+		b[i] = '0' + byte(x%10)
 	}
 
-	athousand := big.NewInt(1000)
-	c := (&big.Int{}).Set(b)
-	_, m := oom(c, athousand)
-	parts := make([]string, m+1)
-	j := len(parts) - 1
-
-	mod := &big.Int{}
-	for b.Cmp(athousand) >= 0 {
-		b.DivMod(b, athousand, mod)
-		parts[j] = strconv.FormatInt(mod.Int64(), 10)
-		switch len(parts[j]) {
-		case 2:
-			parts[j] = "0" + parts[j]
-		case 1:
-			parts[j] = "00" + parts[j]
-		}
-		j--
+	if len-i < 1 {
+		i--
+		b[i] = '0'
 	}
-	parts[j] = strconv.Itoa(int(b.Int64()))
-	return sign + strings.Join(parts[j:], ",")
+
+	if n {
+		i--
+		b[i] = '-'
+	}
+
+	return string(b[i:len])
 }
